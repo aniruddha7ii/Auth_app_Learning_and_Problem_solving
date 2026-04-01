@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import userModel from './../Models/userModels';
-import { cookieParser } from 'cookie-parser';
+import userModel from './../Models/userModels.js';
+import { sendWellcomeEmail,sendLoginNotificationEmail } from '../config/nodemaler.js';
 
 export const register = async (req, res) => {
 
@@ -33,6 +33,11 @@ export const register = async (req, res) => {
         await user.save();
 
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+
+
+        // send wellcome email
+        await sendWellcomeEmail(email);
+
 
         // res.status(201).json({success:true,message:"User registered successfully.", token});
         // i will send token in cookie so that it will be more secure and it will be automatically sent in every request.
@@ -76,6 +81,10 @@ export const login = async (req, res) => {
 
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
+
+        // send login notification email
+        await sendLoginNotificationEmail(email);
+        
         // res.status(200).json({success:true,message:"User logged in successfully.",token});
         return res
             .cookie('utoken', token, {
